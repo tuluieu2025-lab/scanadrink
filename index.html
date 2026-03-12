@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Scan A Drink</title>
+
+<style>
+
+body{
+margin:0;
+background:black;
+font-family:Helvetica, Arial, sans-serif;
+color:white;
+
+min-height:200vh;
+overflow-x:hidden;
+overflow-y:auto;
+}
+
+/* ---------------- LOADING SCREEN ---------------- */
+
+#loadingScreen{
+position:fixed;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:black;
+transition:opacity .7s ease;
+}
+
+/* heartbeat glow */
+@keyframes glowBeat{
+0%,45%,100% { filter:drop-shadow(0 0 2px rgba(255,255,255,.25)); }
+8% { filter:drop-shadow(0 0 12px rgba(255,255,255,.95)); }
+16% { filter:drop-shadow(0 0 5px rgba(255,255,255,.35)); }
+24% { filter:drop-shadow(0 0 11px rgba(255,255,255,.75)); }
+32% { filter:drop-shadow(0 0 3px rgba(255,255,255,.25)); }
+}
+
+.logoOutline{
+fill:none;
+stroke:white;
+stroke-width:2.5;
+animation:glowBeat 2.6s ease-in-out infinite;
+}
+
+/* ---------------- DRINK PAGE ---------------- */
+
+#drinksScreen{
+display:none;
+padding:40px;
+}
+
+.title{
+font-size:22px;
+letter-spacing:2px;
+margin-bottom:30px;
+}
+
+.scrollContainer{
+display:flex;
+gap:32px;
+overflow-x:auto;
+scroll-snap-type:x mandatory;
+}
+
+.scrollContainer::-webkit-scrollbar{
+display:none;
+}
+
+.drinkCard{
+min-width:420px;
+height:400px;
+background:#0f0f0f;
+border-radius:42px;
+padding:40px;
+scroll-snap-align:start;
+box-shadow:0 25px 70px rgba(0,0,0,.65);
+}
+
+.drinkName{
+font-size:46px;
+letter-spacing:8px;
+text-align:center;
+margin-bottom:40px;
+filter:drop-shadow(0 0 10px rgba(255,255,255,.15));
+}
+
+.glass{
+width:200px;
+display:block;
+margin:auto;
+}
+
+.glassOutline{
+stroke:white;
+stroke-width:4;
+fill:rgba(255,255,255,.04);
+}
+
+.rimOuter{
+stroke:white;
+stroke-width:4;
+fill:none;
+}
+
+.rimInner{
+stroke:rgba(255,255,255,.55);
+stroke-width:2;
+fill:none;
+}
+
+.liquid{
+filter:drop-shadow(0 0 12px rgba(255,255,255,.1));
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOADING SCREEN -->
+
+<div id="loadingScreen">
+
+<svg viewBox="0 0 800 200" width="80%">
+
+<defs>
+<mask id="text-mask">
+<rect width="100%" height="100%" fill="black"/>
+<text x="50%" y="60%" text-anchor="middle"
+font-size="120"
+font-family="Helvetica"
+fill="white">ScanADrink</text>
+</mask>
+</defs>
+
+<text x="50%" y="60%" text-anchor="middle"
+font-size="120"
+font-family="Helvetica"
+class="logoOutline">ScanADrink</text>
+
+<g mask="url(#text-mask)">
+<path id="wavePath" fill="#8A2BE2"></path>
+</g>
+
+</svg>
+
+</div>
+
+
+<!-- DRINKS SCREEN -->
+
+<div id="drinksScreen">
+
+<div class="title">ALCOHOLIC DRINKS</div>
+
+<div class="scrollContainer">
+
+<!-- VODKA -->
+
+<div class="drinkCard">
+
+<div class="drinkName">VODKA</div>
+
+<svg class="glass" viewBox="0 0 200 260">
+
+<defs>
+
+<clipPath id="clipVodka">
+<path d="M66 46 L78 218 Q100 242 122 218 L134 46 Z"/>
+</clipPath>
+
+<linearGradient id="vodkaColor" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#e9d1a8"/>
+<stop offset="100%" stop-color="#b8893d"/>
+</linearGradient>
+
+</defs>
+
+<ellipse class="rimOuter" cx="100" cy="46" rx="46" ry="12"/>
+<ellipse class="rimInner" cx="100" cy="46" rx="38" ry="9"/>
+
+<path class="glassOutline" d="M54 46 L70 220 Q100 252 130 220 L146 46"/>
+
+<g clip-path="url(#clipVodka)">
+<path id="vodkaLiquid" class="liquid" fill="url(#vodkaColor)"></path>
+</g>
+
+</svg>
+
+</div>
+
+<!-- GIN -->
+
+<div class="drinkCard">
+
+<div class="drinkName">GIN</div>
+
+<svg class="glass" viewBox="0 0 200 260">
+
+<defs>
+
+<clipPath id="clipGin">
+<path d="M66 46 L78 218 Q100 242 122 218 L134 46 Z"/>
+</clipPath>
+
+</defs>
+
+<ellipse class="rimOuter" cx="100" cy="46" rx="46" ry="12"/>
+<ellipse class="rimInner" cx="100" cy="46" rx="38" ry="9"/>
+
+<path class="glassOutline" d="M54 46 L70 220 Q100 252 130 220 L146 46"/>
+
+<g clip-path="url(#clipGin)">
+<path id="ginLiquid" class="liquid" fill="rgba(255,255,255,.35)"></path>
+</g>
+
+</svg>
+
+</div>
+
+<!-- WHISKEY -->
+
+<div class="drinkCard">
+
+<div class="drinkName">WHISKEY</div>
+
+<svg class="glass" viewBox="0 0 200 260">
+
+<defs>
+
+<clipPath id="clipWhiskey">
+<path d="M66 46 L78 218 Q100 242 122 218 L134 46 Z"/>
+</clipPath>
+
+</defs>
+
+<ellipse class="rimOuter" cx="100" cy="46" rx="46" ry="12"/>
+<ellipse class="rimInner" cx="100" cy="46" rx="38" ry="9"/>
+
+<path class="glassOutline" d="M54 46 L70 220 Q100 252 130 220 L146 46"/>
+
+<g clip-path="url(#clipWhiskey)">
+<path id="whiskeyLiquid" class="liquid" fill="#2c170d"></path>
+</g>
+
+</svg>
+
+</div>
+
+</div>
+</div>
+
+
+<script>
+
+/* -------- LOADING LOGO -------- */
+
+const wave=document.getElementById("wavePath")
+
+let width=800
+let height=200
+let freq=.02
+let phase=0
+let fill=200
+let velocity=0
+let done=false
+
+function animateLogo(){
+
+if(fill>0){
+velocity+=.03
+velocity*=.97
+fill-=velocity
+}
+
+let path=`M0 ${fill} `
+
+for(let x=0;x<=width;x++){
+let y=6*Math.sin((x*freq)+phase)+fill
+path+=`L${x} ${y} `
+}
+
+path+=`L${width} ${height} L0 ${height} Z`
+
+wave.setAttribute("d",path)
+
+phase+=.08
+
+if(fill<=0 && !done){
+
+done=true
+
+setTimeout(()=>{
+document.getElementById("loadingScreen").style.opacity=0
+
+setTimeout(()=>{
+document.getElementById("loadingScreen").style.display="none"
+document.getElementById("drinksScreen").style.display="block"
+startDrinkAnimations()
+},700)
+
+},400)
+
+}
+
+requestAnimationFrame(animateLogo)
+
+}
+
+animateLogo()
+
+
+
+/* -------- DRINK FILL ANIMATION -------- */
+
+function startDrinkAnimations(){
+
+const liquids=[
+document.getElementById("vodkaLiquid"),
+document.getElementById("ginLiquid"),
+document.getElementById("whiskeyLiquid")
+]
+
+let fillY=260
+let target=74
+let phase=0
+
+function animate(){
+
+if(fillY>target){
+fillY-=1.4
+phase+=0.1
+}
+
+let path=`M-40 ${fillY} `
+
+for(let x=-40;x<=240;x++){
+let y=fillY+Math.sin((x*.05)+phase)*4
+path+=`L${x} ${y} `
+}
+
+path+=`L240 260 L-40 260 Z`
+
+liquids.forEach(l=>{
+l.setAttribute("d",path)
+})
+
+requestAnimationFrame(animate)
+
+}
+
+animate()
+
+}
+
+</script>
+
+</body>
+</html>
