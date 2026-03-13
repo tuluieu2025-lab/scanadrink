@@ -53,9 +53,18 @@ padding:40px;
 }
 
 .title{
-font-size:22px;
-letter-spacing:2px;
-margin-bottom:30px;
+font-size:38px;      
+letter-spacing:4px;
+margin-bottom:10px;
+font-weight:600;
+}
+
+.subtitle{
+font-size:18px;
+opacity:.85;
+margin-bottom:40px;
+max-width:600px;
+text-shadow: 0 0 8px rgb(255, 255, 255);
 }
 
 .scrollContainer{
@@ -63,6 +72,20 @@ display:flex;
 gap:32px;
 overflow-x:auto;
 scroll-snap-type:x mandatory;
+}
+#mixerScreen .scrollContainer{
+    flex-direction:column;
+    overflow-x:hidden;
+    gap:25px;
+}
+#mixerScreen .drinkCard{
+    min-width:100%;
+    height:auto;
+    background:none;
+    border-radius:0;
+    box-shadow:none;
+    padding:20px 0;
+    border-bottom:1px solid rgba(255,255,255,.15);
 }
 
 .scrollContainer::-webkit-scrollbar{
@@ -114,7 +137,99 @@ fill:none;
 .liquid{
 filter:drop-shadow(0 0 12px rgba(255,255,255,.1));
 }
+/* -------- MIXER SCREEN -------- */
 
+#mixerScreen{
+    display:none;
+    padding:30px 25px;
+}
+
+.mixerList{
+    display:flex;
+    flex-direction:column;
+    gap:25px;
+    margin-top:40px;
+}
+
+.mixerItem{
+    font-size:28px;
+    letter-spacing:3px;
+    padding:18px 0;
+    border-bottom:1px solid rgba(255,255,255,.15);
+    cursor:pointer;
+    transition:all .2s ease;
+}
+
+.mixerItem:hover{
+    color:#ffffff;
+    text-shadow:0 0 10px rgba(255,255,255,.5);
+    transform:translateX(6px);
+}
+.mixerRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 0;
+    border-bottom:1px solid rgba(255,255,255,.15);
+    font-size:22px;
+}
+.mixerName{
+    flex:1;
+}
+
+.quantityBox{
+    min-width:120px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.addBtn{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:none;
+    background:white;
+    color:black;
+    font-size:26px;
+    cursor:pointer;
+}
+
+.counter{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.minusBtn,
+.plusBtn{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:none;
+    background:white;
+    color:black;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.qty{
+    font-size:20px;
+}
+
+.mixerLayout{
+    display:flex;
+    gap:40px;
+}
+
+.mixerList{
+    flex:2;
+}
+
+.orderSection{
+    flex:1;
+    border-left:1px solid rgba(255,255,255,.2);
+    padding-left:25px;
+}
 </style>
 </head>
 
@@ -155,6 +270,9 @@ class="logoOutline">ScanADrink</text>
 <div id="drinksScreen">
 
 <div class="title">ALCOHOLIC DRINKS</div>
+<div class="subtitle">
+Choose the base of your beverage, then select your mixer.
+</div>
 
 <div class="scrollContainer">
 
@@ -214,7 +332,7 @@ class="logoOutline">ScanADrink</text>
 <path class="glassOutline" d="M54 46 L70 220 Q100 252 130 220 L146 46"/>
 
 <g clip-path="url(#clipGin)">
-<path id="ginLiquid" class="liquid" fill="rgba(255,255,255,.35)"></path>
+<path id="ginLiquid" class="liquid" fill="#ffe6b3"></path>
 </g>
 
 </svg>
@@ -250,12 +368,153 @@ class="logoOutline">ScanADrink</text>
 
 </div>
 
+<!-- RUM -->
+
+<div class="drinkCard">
+
+<div class="drinkName">RUM</div>
+
+<svg class="glass" viewBox="0 0 200 260">
+
+<defs>
+
+<clipPath id="clipRum">
+<path d="M66 46 L78 218 Q100 242 122 218 L134 46 Z"/>
+</clipPath>
+
+</defs>
+
+<ellipse class="rimOuter" cx="100" cy="46" rx="46" ry="12"/>
+<ellipse class="rimInner" cx="100" cy="46" rx="38" ry="9"/>
+
+<path class="glassOutline" d="M54 46 L70 220 Q100 252 130 220 L146 46"/>
+
+<g clip-path="url(#clipRum)">
+<path id="rumLiquid" class="liquid" fill="#4a1f12"></path>
+</g>
+
+</svg>
+
+</div>
+
 </div>
 </div>
 
+<!-- MIXER SCREEN -->
+<div id="mixerScreen">
 
-<script>
+    <div class="mixerLayout">
 
+        <div class="mixerList">
+           <div class="mixerRow">
+        <span class="mixerName">COKE</span>
+        <div class="quantityBox">
+            <button class="addBtn">+</button>
+            <div class="counter" style="display:none;">
+                <button class="minusBtn">-</button>
+                <span class="qty">1</span>
+                <button class="plusBtn">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mixerRow">
+        <span class="mixerName">SPRITE</span>
+        <div class="quantityBox">
+            <button class="addBtn">+</button>
+            <div class="counter" style="display:none;">
+                <button class="minusBtn">-</button>
+                <span class="qty">1</span>
+                <button class="plusBtn">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mixerRow">
+        <span class="mixerName">FANTA</span>
+        <div class="quantityBox">
+            <button class="addBtn">+</button>
+            <div class="counter" style="display:none;">
+                <button class="minusBtn">-</button>
+                <span class="qty">1</span>
+                <button class="plusBtn">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mixerRow">
+        <span class="mixerName">TONIC</span>
+        <div class="quantityBox">
+            <button class="addBtn">+</button>
+            <div class="counter" style="display:none;">
+                <button class="minusBtn">-</button>
+                <span class="qty">1</span>
+                <button class="plusBtn">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mixerRow">
+        <span class="mixerName">REDBULL</span>
+        <div class="quantityBox">
+            <button class="addBtn">+</button>
+            <div class="counter" style="display:none;">
+                <button class="minusBtn">-</button>
+                <span class="qty">1</span>
+                <button class="plusBtn">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mixerRow">
+        <span class="mixerName">WATER</span>
+        <div class="quantityBox">
+            <button class="addBtn">+</button>
+            <div class="counter" style="display:none;">
+                <button class="minusBtn">-</button>
+                <span class="qty">1</span>
+                <button class="plusBtn">+</button>
+            </div>
+        </div>
+    </div>  
+            <!-- ALL mixerRow blocks stay here -->
+        </div>
+
+        <div class="orderSection">
+            <div style="font-size:22px;">YOUR ORDER</div>
+            <div id="orderList" style="margin-top:15px;"></div>
+
+            <br>
+
+            <button onclick="registerOrder()"
+                style="padding:14px;
+                       border:none;
+                       border-radius:25px;
+                       background:white;
+                       color:black;
+                       width:100%;
+                       font-size:18px;">
+                Register Order
+            </button>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <button onclick="goBack()"
+        style="padding:10px 18px;
+               border:none;
+               border-radius:20px;
+               background:white;
+               color:black;">
+        Back
+    </button>
+
+</div>
+<script>  
+let order = [];
+let currentBase = "";    
 /* -------- LOADING LOGO -------- */
 
 const wave=document.getElementById("wavePath")
@@ -321,7 +580,8 @@ function startDrinkAnimations(){
 const liquids=[
 document.getElementById("vodkaLiquid"),
 document.getElementById("ginLiquid"),
-document.getElementById("whiskeyLiquid")
+document.getElementById("whiskeyLiquid"),
+document.getElementById("rumLiquid")
 ]
 
 let fillY=260
@@ -355,7 +615,169 @@ requestAnimationFrame(animate)
 animate()
 
 }
+/* -------- CLICK LOGIC -------- */
 
+const cards = document.querySelectorAll(".drinkCard");
+
+cards.forEach(card=>{
+card.addEventListener("click",()=>{
+const name = card.querySelector(".drinkName").innerText;
+currentBase = name; 
+document.getElementById("drinksScreen").style.display="none";
+document.getElementById("mixerScreen").style.display="block";
+document.getElementById("mixerTitle").innerText = name + " MIXERS";
+});
+});
+
+/* -------- MIXER CLICK -------- */
+
+/* -------- NEW MIXER QUANTITY LOGIC -------- */
+
+const mixerRows = document.querySelectorAll(".mixerRow");
+
+mixerRows.forEach(row => {
+
+    const addBtn = row.querySelector(".addBtn");
+    const counter = row.querySelector(".counter");
+    const minusBtn = row.querySelector(".minusBtn");
+    const plusBtn = row.querySelector(".plusBtn");
+    const qtyDisplay = row.querySelector(".qty");
+    const mixerName = row.querySelector(".mixerName").innerText;
+
+    let quantity = 1;
+
+    addBtn.addEventListener("click", () => {
+        addBtn.style.display = "none";
+        counter.style.display = "flex";
+
+        order.push({
+            base: currentBase,
+            mixer: mixerName,
+            quantity: 1
+        });
+
+        updateOrderScreen();
+    });
+
+    plusBtn.addEventListener("click", () => {
+        quantity++;
+        qtyDisplay.innerText = quantity;
+
+        const drink = order.find(d =>
+            d.base === currentBase && d.mixer === mixerName
+        );
+
+        if(drink){
+            drink.quantity = quantity;
+        }
+
+        updateOrderScreen();
+    });
+
+    minusBtn.addEventListener("click", () => {
+        quantity--;
+
+        if(quantity <= 0){
+            counter.style.display = "none";
+            addBtn.style.display = "block";
+            quantity = 1;
+
+            order = order.filter(d =>
+                !(d.base === currentBase && d.mixer === mixerName)
+            );
+        } else {
+            qtyDisplay.innerText = quantity;
+
+            const drink = order.find(d =>
+                d.base === currentBase && d.mixer === mixerName
+            );
+
+            if(drink){
+                drink.quantity = quantity;
+            }
+        }
+
+        updateOrderScreen();
+    });
+
+});
+
+function goBack(){
+    document.getElementById("mixerScreen").style.display = "none";
+    document.getElementById("drinksScreen").style.display = "block";
+
+    // Reset liquids before replay
+    resetDrinkFill();
+
+    // Replay animation
+   
+   startDrinkAnimations();
+}
+function resetDrinkFill(){
+    const liquids = [
+        document.getElementById("vodkaLiquid"),
+        document.getElementById("ginLiquid"),
+        document.getElementById("whiskeyLiquid"),
+        document.getElementById("rumLiquid")
+    ];
+
+    liquids.forEach(l => {
+        l.setAttribute("d", ""); // clear liquid path
+    });
+}
+
+function addToOrder(mixerName, quantity){
+
+    const existing = order.find(
+        item => item.base === currentBase && item.mixer === mixerName
+    );
+
+    if(existing){
+        existing.quantity = quantity;
+    } else {
+        order.push({
+            base: currentBase,
+            mixer: mixerName,
+            quantity: quantity
+        });
+    }
+
+    updateOrderScreen();
+}
+
+function updateOrderScreen(){
+
+    const list = document.getElementById("orderList");
+    list.innerHTML = "";
+
+    order.forEach((drink,index)=>{
+
+        const item = document.createElement("div");
+        item.style.marginBottom = "20px";
+        item.style.fontSize = "22px";
+
+        item.innerText =
+            drink.quantity + "x " + drink.base + " + " + drink.mixer;
+
+        list.appendChild(item);
+    });
+}
+
+function registerOrder(){
+
+    if(order.length === 0){
+        alert("No drinks selected");
+        return;
+    }
+
+    alert("Order Registered!");
+
+    order = [];
+    updateOrderScreen();
+
+    document.getElementById("mixerScreen").style.display = "none";
+    document.getElementById("drinksScreen").style.display = "block";
+}
 </script>
 
 </body>
