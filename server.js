@@ -1,4 +1,3 @@
-
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
@@ -9,13 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
  
-// VAPID keys for Web Push
 const VAPID_PUBLIC = 'BBaEjhW0EUvQPbRPrLbaA2o4XJtXTpVjPyaahGGMYbBPfAJhS9f4fLrmD-wVyq9UOslM3luh7ft5zI_op-DuYZk';
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
- 
 webpush.setVapidDetails('mailto:scanadrink@scanadrink.com', VAPID_PUBLIC, VAPID_PRIVATE);
  
-// Firebase Admin
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -25,7 +21,7 @@ const db = admin.database();
  
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    const { items, successUrl, cancelUrl } = req.body;
+    const { items, orderData, successUrl, cancelUrl } = req.body;
     const lineItems = items.map(item => ({
       price_data: {
         currency: 'eur',
@@ -40,6 +36,9 @@ app.post('/create-checkout-session', async (req, res) => {
       mode: 'payment',
       success_url: successUrl + '?session_id={CHECKOUT_SESSION_ID}',
       cancel_url: cancelUrl,
+      metadata: {
+        orderData: JSON.stringify(orderData)
+      }
     });
     res.json({ url: session.url });
   } catch (err) {
@@ -47,12 +46,17 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
  
-// Save order after payment confirmed
-app.post('/save-order', async (req, res) => {
+// Called from success page with session_id to confirm payment and save order
+app.post('/confirm-order', async (req, res) => {
   try {
-    const { orderNumber, table, items, total, timestamp } = req.body;
+    const { sessionId } = req.body;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== 'paid') {
+      return res.status(400).json({ error: 'Payment not confirmed' });
+    }
+    const orderData = JSON.parse(session.metadata.orderData);
     const pushRef = await db.ref('orders').push({
-      orderNumber, table, items, total, timestamp,
+      ...orderData,
       status: 'preparing'
     });
     res.json({ firebaseKey: pushRef.key });
@@ -61,7 +65,19 @@ app.post('/save-order', async (req, res) => {
   }
 });
  
-// Save push subscription
+// Save order directly (fallback)
+app.post('/save-order', async (req, res) => {
+  try {
+    const { orderNumber, table, items, total, timestamp } = req.body;
+    const pushRef = await db.ref('orders').push({
+      orderNumber, table, items, total, timestamp, status: 'preparing'
+    });
+    res.json({ firebaseKey: pushRef.key });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+ 
 app.post('/save-subscription', async (req, res) => {
   try {
     const { firebaseKey, subscription } = req.body;
@@ -73,20 +89,17 @@ app.post('/save-subscription', async (req, res) => {
   }
 });
  
-// Send push notification
 app.post('/notify-done', async (req, res) => {
   try {
     const { firebaseKey } = req.body;
     const snapshot = await db.ref('orders/' + firebaseKey).once('value');
     const order = snapshot.val();
     if (!order || !order.pushSubscription) return res.status(404).json({ error: 'No subscription found' });
- 
     const subscription = JSON.parse(order.pushSubscription);
     const payload = JSON.stringify({
       title: 'ScanAdrink 🍹',
       body: `Order #${order.orderNumber} is ready! Head to the bar.`
     });
- 
     await webpush.sendNotification(subscription, payload);
     res.json({ success: true });
   } catch (err) {
@@ -95,7 +108,5 @@ app.post('/notify-done', async (req, res) => {
 });
  
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
- 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
- 
