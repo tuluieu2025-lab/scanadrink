@@ -107,6 +107,27 @@ app.post('/notify-done', async (req, res) => {
   }
 });
  
+// Send reminder notification
+app.post('/notify-reminder', async (req, res) => {
+  try {
+    const { firebaseKey } = req.body;
+    const snapshot = await db.ref('orders/' + firebaseKey).once('value');
+    const order = snapshot.val();
+    if (!order || !order.pushSubscription) return res.status(404).json({ error: 'No subscription' });
+    if (order.status !== 'done') return res.json({ skipped: true }); // already confirmed
+ 
+    const subscription = JSON.parse(order.pushSubscription);
+    const payload = JSON.stringify({
+      title: 'ScanAdrink 🍹',
+      body: `Order #${order.orderNumber} is waiting at the bar — come collect your drink!`
+    });
+    await webpush.sendNotification(subscription, payload);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+ 
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
