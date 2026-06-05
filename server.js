@@ -1,3 +1,4 @@
+
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
@@ -41,6 +42,20 @@ app.post('/create-checkout-session', async (req, res) => {
       cancel_url: cancelUrl,
     });
     res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+ 
+// Save order after payment confirmed
+app.post('/save-order', async (req, res) => {
+  try {
+    const { orderNumber, table, items, total, timestamp } = req.body;
+    const pushRef = await db.ref('orders').push({
+      orderNumber, table, items, total, timestamp,
+      status: 'preparing'
+    });
+    res.json({ firebaseKey: pushRef.key });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
