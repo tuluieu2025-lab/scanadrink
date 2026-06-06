@@ -1,4 +1,3 @@
-
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
@@ -27,7 +26,7 @@ async function trackMixpanel(event, properties) {
       event,
       properties: {
         token: 'd4b5b43f28149806878033df4cec94d3',
-        distinct_id: 'server',
+        distinct_id: properties.orderNumber ? String(properties.orderNumber) : 'server',
         ...properties
       }
     })).toString('base64');
@@ -183,3 +182,4 @@ app.post('/notify-reminder', async (req, res) => {
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
+ 
