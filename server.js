@@ -19,6 +19,29 @@ admin.initializeApp({
 });
 const db = admin.database();
  
+// Mixpanel tracking function
+async function trackMixpanel(event, properties) {
+  try {
+    const data = Buffer.from(JSON.stringify({
+      event,
+      properties: {
+        token: 'd4b5b43f28149806878033df4cec94d3',
+        distinct_id: 'server',
+        ...properties
+      }
+    })).toString('base64');
+ 
+    await fetch('https://api.mixpanel.com/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${data}`
+    });
+    console.log('Mixpanel event sent:', event);
+  } catch (err) {
+    console.error('Mixpanel error:', err.message);
+  }
+}
+ 
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { items, orderData, successUrl, cancelUrl } = req.body;
@@ -59,6 +82,16 @@ app.post('/confirm-order', async (req, res) => {
       ...orderData,
       status: 'preparing'
     });
+ 
+    // Track in Mixpanel
+    await trackMixpanel('Order Placed', {
+      orderNumber: orderData.orderNumber,
+      total: orderData.total,
+      itemCount: orderData.items ? orderData.items.length : 0,
+      drinks: orderData.items ? orderData.items.map(i => i.name).join(', ') : '',
+      table: orderData.table
+    });
+ 
     res.json({ firebaseKey: pushRef.key });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -72,6 +105,16 @@ app.post('/save-order', async (req, res) => {
     const pushRef = await db.ref('orders').push({
       orderNumber, table, items, total, timestamp, status: 'preparing'
     });
+ 
+    // Track in Mixpanel
+    await trackMixpanel('Order Placed', {
+      orderNumber,
+      total,
+      itemCount: items ? items.length : 0,
+      drinks: items ? items.map(i => i.name).join(', ') : '',
+      table
+    });
+ 
     res.json({ firebaseKey: pushRef.key });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -101,6 +144,14 @@ app.post('/notify-done', async (req, res) => {
       body: `Order #${order.orderNumber} is ready! Head to the bar.`
     });
     await webpush.sendNotification(subscription, payload);
+ 
+    // Track in Mixpanel
+    await trackMixpanel('Drink Ready', {
+      orderNumber: order.orderNumber,
+      total: order.total,
+      table: order.table
+    });
+ 
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -114,7 +165,7 @@ app.post('/notify-reminder', async (req, res) => {
     const snapshot = await db.ref('orders/' + firebaseKey).once('value');
     const order = snapshot.val();
     if (!order || !order.pushSubscription) return res.status(404).json({ error: 'No subscription' });
-    if (order.status !== 'done') return res.json({ skipped: true }); // already confirmed
+    if (order.status !== 'done') return res.json({ skipped: true });
  
     const subscription = JSON.parse(order.pushSubscription);
     const payload = JSON.stringify({
