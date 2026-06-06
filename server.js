@@ -1,3 +1,4 @@
+
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
@@ -31,7 +32,7 @@ async function trackMixpanel(event, properties) {
       }
     })).toString('base64');
  
-    await fetch('https://api.mixpanel.com/track', {
+    await fetch('https://api-eu.mixpanel.com/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `data=${data}`
