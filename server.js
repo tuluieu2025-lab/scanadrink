@@ -182,4 +182,3 @@ app.post('/notify-reminder', async (req, res) => {
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
- 
