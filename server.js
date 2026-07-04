@@ -23,8 +23,8 @@ const db = admin.database();
 // Email transporter (Namecheap Private Email)
 const transporter = nodemailer.createTransport({
   host: 'smtp.privateemail.com',
-  port: 587,
-  secure: false, // STARTTLS on port 587
+  port: 465,
+  secure: true, // SSL on port 465
   auth: {
     user: 'scanadrink@scanadrink.com',
     pass: process.env.SMTP_PASSWORD
