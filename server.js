@@ -3,6 +3,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const webpush = require('web-push');
 const admin = require('firebase-admin');
+const nodemailer = require('nodemailer');
  
 const app = express();
 app.use(cors());
@@ -18,6 +19,40 @@ admin.initializeApp({
   databaseURL: 'https://scanadrink-default-rtdb.europe-west1.firebasedatabase.app'
 });
 const db = admin.database();
+ 
+// Email transporter (Namecheap Private Email)
+const transporter = nodemailer.createTransport({
+  host: 'smtp.privateemail.com',
+  port: 587,
+  secure: false, // STARTTLS on port 587
+  auth: {
+    user: 'scanadrink@scanadrink.com',
+    pass: process.env.SMTP_PASSWORD
+  }
+});
+ 
+async function sendReadyEmail(toEmail, orderNumber) {
+  if (!toEmail) {
+    console.log('No customer email on file, skipping email send.');
+    return;
+  }
+  try {
+    await transporter.sendMail({
+      from: '"ScanAdrink" <scanadrink@scanadrink.com>',
+      to: toEmail,
+      subject: 'Your drink is ready 🍹',
+      text: `Your order #${orderNumber} is ready at the bar. Come collect your drink and show this screen to the bartender!`,
+      html: `<div style="font-family: sans-serif; padding: 20px;">
+               <h2>Your drink is ready 🍹</h2>
+               <p>Order <strong>#${orderNumber}</strong> is ready at the bar.</p>
+               <p>Come collect your drink — show this email to the bartender!</p>
+             </div>`
+    });
+    console.log('Ready email sent to', toEmail);
+  } catch (err) {
+    console.error('Email send error:', err.message);
+  }
+}
  
 // Mixpanel tracking function
 async function trackMixpanel(event, properties) {
@@ -78,8 +113,13 @@ app.post('/confirm-order', async (req, res) => {
       return res.status(400).json({ error: 'Payment not confirmed' });
     }
     const orderData = JSON.parse(session.metadata.orderData);
+ 
+    // Grab the customer's email captured by Stripe (works for card, Apple Pay, Google Pay)
+    const customerEmail = session.customer_details ? session.customer_details.email : null;
+ 
     const pushRef = await db.ref('orders').push({
       ...orderData,
+      customerEmail: customerEmail || null,
       status: 'preparing'
     });
  
@@ -101,9 +141,11 @@ app.post('/confirm-order', async (req, res) => {
 // Save order directly (fallback)
 app.post('/save-order', async (req, res) => {
   try {
-    const { orderNumber, table, items, total, timestamp } = req.body;
+    const { orderNumber, table, items, total, timestamp, customerEmail } = req.body;
     const pushRef = await db.ref('orders').push({
-      orderNumber, table, items, total, timestamp, status: 'preparing'
+      orderNumber, table, items, total, timestamp,
+      customerEmail: customerEmail || null,
+      status: 'preparing'
     });
  
     // Track in Mixpanel
@@ -137,13 +179,24 @@ app.post('/notify-done', async (req, res) => {
     const { firebaseKey } = req.body;
     const snapshot = await db.ref('orders/' + firebaseKey).once('value');
     const order = snapshot.val();
-    if (!order || !order.pushSubscription) return res.status(404).json({ error: 'No subscription found' });
-    const subscription = JSON.parse(order.pushSubscription);
-    const payload = JSON.stringify({
-      title: 'ScanAdrink 🍹',
-      body: `Order #${order.orderNumber} is ready! Head to the bar.`
-    });
-    await webpush.sendNotification(subscription, payload);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+ 
+    // Existing push notification (harmless - only fires if a subscription exists)
+    if (order.pushSubscription) {
+      try {
+        const subscription = JSON.parse(order.pushSubscription);
+        const payload = JSON.stringify({
+          title: 'ScanAdrink 🍹',
+          body: `Order #${order.orderNumber} is ready! Head to the bar.`
+        });
+        await webpush.sendNotification(subscription, payload);
+      } catch (pushErr) {
+        console.error('Push notification error:', pushErr.message);
+      }
+    }
+ 
+    // Send the "drink ready" email
+    await sendReadyEmail(order.customerEmail, order.orderNumber);
  
     // Track in Mixpanel
     await trackMixpanel('Drink Ready', {
@@ -182,3 +235,4 @@ app.post('/notify-reminder', async (req, res) => {
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
+
