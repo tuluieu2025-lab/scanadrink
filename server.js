@@ -141,10 +141,24 @@ app.post('/confirm-order', async (req, res) => {
 // Save order directly (fallback)
 app.post('/save-order', async (req, res) => {
   try {
-    const { orderNumber, table, items, total, timestamp, customerEmail } = req.body;
+    const { orderNumber, table, items, total, timestamp, customerEmail, sessionId } = req.body;
+ 
+    // Try to get the real customer email from Stripe if we have a session ID
+    let finalEmail = customerEmail || null;
+    if (sessionId) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (session.customer_details && session.customer_details.email) {
+          finalEmail = session.customer_details.email;
+        }
+      } catch (stripeErr) {
+        console.error('Could not retrieve Stripe session for email:', stripeErr.message);
+      }
+    }
+ 
     const pushRef = await db.ref('orders').push({
       orderNumber, table, items, total, timestamp,
-      customerEmail: customerEmail || null,
+      customerEmail: finalEmail,
       status: 'preparing'
     });
  
