@@ -88,11 +88,12 @@ app.post('/create-checkout-session', async (req, res) => {
       },
       quantity: item.count,
     }));
+    const separator = successUrl.includes('?') ? '&' : '?';
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: successUrl + '?session_id={CHECKOUT_SESSION_ID}',
+      success_url: successUrl + separator + 'session_id={CHECKOUT_SESSION_ID}',
       cancel_url: cancelUrl,
       metadata: {
         orderData: JSON.stringify(orderData)
@@ -249,4 +250,3 @@ app.post('/notify-reminder', async (req, res) => {
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
-
