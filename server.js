@@ -41,12 +41,23 @@ async function sendReadyEmail(toEmail, orderNumber) {
       from: '"ScanAdrink" <scanadrink@scanadrink.com>',
       to: toEmail,
       subject: 'Your drink is ready 🍹',
-      text: `Your order #${orderNumber} is ready at the bar. Come collect your drink and show this screen to the bartender!`,
-      html: `<div style="font-family: sans-serif; padding: 20px;">
-               <h2>Your drink is ready 🍹</h2>
-               <p>Order <strong>#${orderNumber}</strong> is ready at the bar.</p>
-               <p>Come collect your drink — show this email to the bartender!</p>
-             </div>`
+      text: `Your order #${orderNumber} is ready at the bar. Come collect your drink — show your green screen with your number to the bartender!`,
+      html: `
+<div style="background-color:#0c0c0e; padding:40px 20px; font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:420px; margin:0 auto; background-color:#141416; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden;">
+    <div style="padding:36px 32px 28px; text-align:center;">
+      <div style="font-size:12px; letter-spacing:4px; text-transform:uppercase; color:#c9a96e; margin-bottom:20px;">ScanAdrink</div>
+      <div style="font-size:46px; line-height:1.2; margin-bottom:14px;">🍹</div>
+      <div style="font-family:Georgia,serif; font-size:30px; color:#e8d5b0; margin-bottom:20px;">Your drink is ready!</div>
+      <div style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:15px; color:rgba(240,237,232,0.6); line-height:1.6; margin-bottom:26px;">
+        Order <strong style="color:#e8d5b0;">#${orderNumber}</strong> is ready at the bar.
+      </div>
+      <div style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:15px; color:rgba(240,237,232,0.85); line-height:1.6;">
+        Come collect your drink — show your green screen with your number to the bartender!
+      </div>
+    </div>
+  </div>
+</div>`
     });
     console.log('Ready email sent to', toEmail);
   } catch (err) {
@@ -250,3 +261,4 @@ app.post('/notify-reminder', async (req, res) => {
 app.get('/', (req, res) => res.send('ScanAdrink backend running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
+ 
