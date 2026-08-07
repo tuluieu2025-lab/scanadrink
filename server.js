@@ -31,35 +31,54 @@ const transporter = nodemailer.createTransport({
   }
 });
  
-async function sendReadyEmail(toEmail, orderNumber) {
+// Email copy in both languages
+const EMAIL_COPY = {
+  en: {
+    subject: 'Your drink is ready 🍹',
+    text: (orderNumber) => `Your order #${orderNumber} is ready at the bar. Come collect your drink — show your green screen with your number to the bartender!`,
+    title: 'Your drink is ready!',
+    orderReady: (orderNumber) => `Order <strong style="color:#e8d5b0;">#${orderNumber}</strong> is ready at the bar.`,
+    comeCollect: 'Come collect your drink — show your green screen with your number to the bartender!'
+  },
+  es: {
+    subject: 'Tu bebida está lista 🍹',
+    text: (orderNumber) => `Tu pedido #${orderNumber} está listo en la barra. Ven a recoger tu bebida — muestra tu pantalla verde con tu número al camarero!`,
+    title: 'Tu bebida está lista!',
+    orderReady: (orderNumber) => `El pedido <strong style="color:#e8d5b0;">#${orderNumber}</strong> está listo en la barra.`,
+    comeCollect: 'Ven a recoger tu bebida — muestra tu pantalla verde con tu número al camarero!'
+  }
+};
+ 
+async function sendReadyEmail(toEmail, orderNumber, lang) {
   if (!toEmail) {
     console.log('No customer email on file, skipping email send.');
     return;
   }
+  const copy = EMAIL_COPY[lang === 'en' ? 'en' : 'es'];
   try {
     await transporter.sendMail({
       from: '"ScanAdrink" <scanadrink@scanadrink.com>',
       to: toEmail,
-      subject: 'Your drink is ready 🍹',
-      text: `Your order #${orderNumber} is ready at the bar. Come collect your drink — show your green screen with your number to the bartender!`,
+      subject: copy.subject,
+      text: copy.text(orderNumber),
       html: `
 <div style="background-color:#0c0c0e; padding:40px 20px; font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:420px; margin:0 auto; background-color:#141416; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden;">
     <div style="padding:36px 32px 28px; text-align:center;">
       <div style="font-size:12px; letter-spacing:4px; text-transform:uppercase; color:#c9a96e; margin-bottom:20px;">ScanAdrink</div>
       <div style="font-size:46px; line-height:1.2; margin-bottom:14px;">🍹</div>
-      <div style="font-family:Georgia,serif; font-size:30px; color:#e8d5b0; margin-bottom:20px;">Your drink is ready!</div>
+      <div style="font-family:Georgia,serif; font-size:30px; color:#e8d5b0; margin-bottom:20px;">${copy.title}</div>
       <div style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:15px; color:rgba(240,237,232,0.6); line-height:1.6; margin-bottom:26px;">
-        Order <strong style="color:#e8d5b0;">#${orderNumber}</strong> is ready at the bar.
+        ${copy.orderReady(orderNumber)}
       </div>
       <div style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:15px; color:rgba(240,237,232,0.85); line-height:1.6;">
-        Come collect your drink — show your green screen with your number to the bartender!
+        ${copy.comeCollect}
       </div>
     </div>
   </div>
 </div>`
     });
-    console.log('Ready email sent to', toEmail);
+    console.log('Ready email sent to', toEmail, 'in', lang || 'es');
   } catch (err) {
     console.error('Email send error:', err.message);
   }
@@ -153,7 +172,7 @@ app.post('/confirm-order', async (req, res) => {
 // Save order directly (fallback)
 app.post('/save-order', async (req, res) => {
   try {
-    const { orderNumber, table, items, total, timestamp, customerEmail, sessionId } = req.body;
+    const { orderNumber, table, items, total, timestamp, customerEmail, sessionId, lang } = req.body;
  
     // Try to get the real customer email from Stripe if we have a session ID
     let finalEmail = customerEmail || null;
@@ -171,6 +190,7 @@ app.post('/save-order', async (req, res) => {
     const pushRef = await db.ref('orders').push({
       orderNumber, table, items, total, timestamp,
       customerEmail: finalEmail,
+      lang: lang || 'es',
       status: 'preparing'
     });
  
@@ -221,8 +241,8 @@ app.post('/notify-done', async (req, res) => {
       }
     }
  
-    // Send the "drink ready" email
-    await sendReadyEmail(order.customerEmail, order.orderNumber);
+    // Send the "drink ready" email in the customer's chosen language
+    await sendReadyEmail(order.customerEmail, order.orderNumber, order.lang);
  
     // Track in Mixpanel
     await trackMixpanel('Drink Ready', {
